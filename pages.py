@@ -237,25 +237,28 @@ def main_nl_strategy():
             3. 策略描述可能存在歧义，建议简化条件
             """)
 
-        st.subheader("策略 vs 标的 相对收益对比（百分比）")
+        # ✅ 彻底删除所有图表文字，只保留曲线和买卖点
         df = bt["df"]
-        plt.rcParams['font.sans-serif'] = ['SimHei', 'WenQuanYi Zen Hei']
         plt.rcParams['axes.unicode_minus'] = False
 
         fig, ax = plt.subplots(figsize=(12, 5))
-        ax.plot(df["date"], df["标的收益(%)"], label="标的价格（相对收益）", color="#2196F3", linewidth=2)
-        ax.plot(df["date"], df["策略收益(%)"], label="策略净值（相对收益）", color="#F44336", linewidth=2)
+        ax.plot(df["date"], df["标的收益(%)"], color="#2196F3", linewidth=2)
+        ax.plot(df["date"], df["策略收益(%)"], color="#F44336", linewidth=2)
 
         buy_points = df[df["buy_signal"] == 1]
         sell_points = df[df["sell_signal"] == 1]
-        ax.scatter(buy_points["date"], buy_points["标的收益(%)"], color="green", marker="^", s=100, label="买入信号")
-        ax.scatter(sell_points["date"], sell_points["标的收益(%)"], color="red", marker="v", s=100, label="卖出信号")
+        ax.scatter(buy_points["date"], buy_points["标的收益(%)"], color="green", marker="^", s=100)
+        ax.scatter(sell_points["date"], sell_points["标的收益(%)"], color="red", marker="v", s=100)
 
-        ax.legend()
+        # 🔴 彻底删除所有文字：标题、坐标轴标签、图例
         ax.grid(True, alpha=0.3)
-        ax.set_ylabel("相对收益（%，初始=100）")
-        ax.set_xlabel("日期")
-        plt.xticks(rotation=45)
+        ax.set_xticks([])  # 连x轴日期也删掉
+        ax.set_yticks([])  # 连y轴刻度也删掉
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+
         st.pyplot(fig)
 
         trade_count = len(df[df["strategy_return"] != 0])
