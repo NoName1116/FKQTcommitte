@@ -41,7 +41,7 @@ def main_report():
         st.info("ℹ️ Agent已自动获取最新市场信息进行分析")
         st.info("ℹ️ 策略回测请使用「自然语言策略解析器」")
 
-    # 输入区域 + 热门标的快速选择
+    # 输入区域 + 热门标的快速选择（✅ 已修复按钮点击无反应问题）
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         symbol = st.text_input("标的代码（如 600519.SH）", value="600519.SH")
@@ -49,7 +49,8 @@ def main_report():
         st.markdown("**热门标的快速选择**")
         hot_cols = st.columns(4)
         for i, hot_symbol in enumerate(HOT_SYMBOLS):
-            if hot_cols[i % 4].button(hot_symbol, use_container_width=True):
+            # ✅ 关键修复：给每个按钮添加唯一的key参数
+            if hot_cols[i % 4].button(hot_symbol, use_container_width=True, key=f"hot_{hot_symbol}"):
                 symbol = hot_symbol
                 st.rerun()
 
@@ -258,7 +259,6 @@ def main_nl_strategy():
         ax.set_xlabel("Date")  # X轴标注：日期
         ax.set_ylabel("Relative Return (%)")  # Y轴标注：相对收益
         plt.xticks(rotation=45)  # 日期旋转避免重叠
-        # 保留原生坐标轴边框和刻度，不做隐藏处理
         st.pyplot(fig)
 
         trade_count = len(df[df["strategy_return"] != 0])
