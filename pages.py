@@ -237,28 +237,28 @@ def main_nl_strategy():
             3. 策略描述可能存在歧义，建议简化条件
             """)
 
-        # ✅ 彻底删除所有图表文字，只保留曲线和买卖点
+        # 平衡优化版：带基础英文可读标注，无中文乱码
         df = bt["df"]
         plt.rcParams['axes.unicode_minus'] = False
 
         fig, ax = plt.subplots(figsize=(12, 5))
-        ax.plot(df["date"], df["标的收益(%)"], color="#2196F3", linewidth=2)
-        ax.plot(df["date"], df["策略收益(%)"], color="#F44336", linewidth=2)
+        # 绘制收益曲线
+        ax.plot(df["date"], df["标的收益(%)"], label="Benchmark (Buy & Hold)", color="#2196F3", linewidth=2)
+        ax.plot(df["date"], df["策略收益(%)"], label="Strategy Return", color="#F44336", linewidth=2)
 
+        # 标注买卖信号
         buy_points = df[df["buy_signal"] == 1]
         sell_points = df[df["sell_signal"] == 1]
-        ax.scatter(buy_points["date"], buy_points["标的收益(%)"], color="green", marker="^", s=100)
-        ax.scatter(sell_points["date"], sell_points["标的收益(%)"], color="red", marker="v", s=100)
+        ax.scatter(buy_points["date"], buy_points["标的收益(%)"], color="green", marker="^", s=100, label="Buy Signal")
+        ax.scatter(sell_points["date"], sell_points["标的收益(%)"], color="red", marker="v", s=100, label="Sell Signal")
 
-        # 🔴 彻底删除所有文字：标题、坐标轴标签、图例
-        ax.grid(True, alpha=0.3)
-        ax.set_xticks([])  # 连x轴日期也删掉
-        ax.set_yticks([])  # 连y轴刻度也删掉
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-
+        # 基础可读性配置
+        ax.legend(loc="upper right")  # 右上角精简英文图例
+        ax.grid(True, alpha=0.3)  # 浅色网格辅助观察走势
+        ax.set_xlabel("Date")  # X轴标注：日期
+        ax.set_ylabel("Relative Return (%)")  # Y轴标注：相对收益
+        plt.xticks(rotation=45)  # 日期旋转避免重叠
+        # 保留原生坐标轴边框和刻度，不做隐藏处理
         st.pyplot(fig)
 
         trade_count = len(df[df["strategy_return"] != 0])

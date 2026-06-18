@@ -370,20 +370,23 @@ df["strategy_return"] = df["strategy_return"].fillna(0)
 df["Benchmark Return (%)"] = (df["close"] / df["close"].iloc[0]) * 100
 df["Strategy Return (%)"] = (1 + df["strategy_return"]).cumprod() * 100
 
-# ✅ 极简图表（无任何文字，彻底解决乱码）
+# 平衡优化版可视化代码（英文标注、无乱码）
 plt.rcParams['axes.unicode_minus'] = False
 
 fig, ax = plt.subplots(figsize=(12, 5))
-ax.plot(df["date"], df["Benchmark Return (%)"], color="#2196F3", linewidth=2)
-ax.plot(df["date"], df["Strategy Return (%)"], color="#F44336", linewidth=2)
+ax.plot(df["date"], df["Benchmark Return (%)"], label="Benchmark (Buy & Hold)", color="#2196F3", linewidth=2)
+ax.plot(df["date"], df["Strategy Return (%)"], label="Strategy Return", color="#F44336", linewidth=2)
 
 # Mark buy/sell points
 buy_points = df[df["buy_signal"] == 1]
 sell_points = df[df["sell_signal"] == 1]
-ax.scatter(buy_points["date"], buy_points["Benchmark Return (%)"], color="green", marker="^", s=100)
-ax.scatter(sell_points["date"], sell_points["Benchmark Return (%)"], color="red", marker="v", s=100)
+ax.scatter(buy_points["date"], buy_points["Benchmark Return (%)"], color="green", marker="^", s=100, label="Buy Signal")
+ax.scatter(sell_points["date"], sell_points["Benchmark Return (%)"], color="red", marker="v", s=100, label="Sell Signal")
 
+ax.legend(loc="upper right")
 ax.grid(True, alpha=0.3)
+ax.set_xlabel("Date")
+ax.set_ylabel("Relative Return (%)")
 plt.xticks(rotation=45)
 plt.show()
 """
