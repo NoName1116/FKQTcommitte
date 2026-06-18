@@ -264,21 +264,21 @@ def parse_strategy_to_signal(df: pd.DataFrame, strategy_text: str, symbol: str) 
             else:
                 data.loc[i, "position"] = 0
 
-    # 生成可直接运行的量化代码
-    quant_code = f"""# 自动生成的量化交易策略代码
-# 策略：{strategy_text}
-# 生成时间：{time.strftime('%Y-%m-%d %H:%M:%S')}
+    # 生成可直接运行的量化代码（已改为英文图表）
+    quant_code = f"""# Auto-generated Quant Trading Strategy Code
+# Strategy: {strategy_text}
+# Generated at: {time.strftime('%Y-%m-%d %H:%M:%S')}
 
 import tushare as ts
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# 配置Tushare
+# Configure Tushare
 ts.set_token("{TUSHARE_TOKEN if TUSHARE_TOKEN else 'YOUR_TUSHARE_TOKEN'}")
 pro = ts.pro_api()
 
-# 获取数据
+# Get data
 symbol = "{symbol}"
 df = pro.daily(ts_code=symbol, start_date='{data['trade_date'].iloc[0]}', end_date='{data['trade_date'].iloc[-1]}')
 df = df.sort_values("trade_date").reset_index(drop=True)
@@ -286,59 +286,59 @@ df["date"] = pd.to_datetime(df["trade_date"])
 df["close"] = df["close"].astype(float)
 df["return"] = df["close"].pct_change()
 
-# 计算均线
+# Calculate moving averages
 """
     for num in ma_nums:
         quant_code += f'df["ma{num}"] = df["close"].rolling({num}).mean()\n'
 
     quant_code += f"""
-# 生成信号
+# Generate signals
 df["buy_signal"] = 0
 df["sell_signal"] = 0
 df["position"] = 0
 df["buy_price"] = np.nan
 
-# 买入条件
+# Buy conditions
 """
     if cross_up:
         for fast, slow in cross_up:
-            quant_code += f'# {fast}日均线上穿{slow}日均线\n'
+            quant_code += f'# {fast} MA crosses above {slow} MA\n'
             quant_code += f'buy_cond = (df["ma{fast}"] > df["ma{slow}"]) & (df["ma{fast}"].shift(1) <= df["ma{slow}"].shift(1))\n'
             quant_code += 'df.loc[buy_cond, "buy_signal"] = 1\n\n'
 
     if stand_on_ma:
         if use_and:
-            quant_code += '# 同时站上所有均线\n'
+            quant_code += '# Price stands above all MAs\n'
             cond_str = ' & '.join([f'(df["close"] > df["ma{n}"])' for n in stand_on_ma])
             quant_code += f'buy_cond = {cond_str}\n'
         else:
-            quant_code += '# 站上任何一条均线\n'
+            quant_code += '# Price stands above any MA\n'
             cond_str = ' | '.join([f'(df["close"] > df["ma{n}"])' for n in stand_on_ma])
             quant_code += f'buy_cond = {cond_str}\n'
         quant_code += 'df.loc[buy_cond, "buy_signal"] = 1\n\n'
 
-    quant_code += f"""# 卖出条件
+    quant_code += f"""# Sell conditions
 """
     if cross_down:
         for fast, slow in cross_down:
-            quant_code += f'# {fast}日均线下穿{slow}日均线\n'
+            quant_code += f'# {fast} MA crosses below {slow} MA\n'
             quant_code += f'sell_cond = (df["ma{fast}"] < df["ma{slow}"]) & (df["ma{fast}"].shift(1) >= df["ma{slow}"].shift(1))\n'
             quant_code += 'df.loc[sell_cond, "sell_signal"] = 1\n\n'
 
     if drop_below_ma:
         if use_and:
-            quant_code += '# 同时跌破所有均线\n'
+            quant_code += '# Price drops below all MAs\n'
             cond_str = ' & '.join([f'(df["close"] < df["ma{n}"])' for n in drop_below_ma])
             quant_code += f'sell_cond = {cond_str}\n'
         else:
-            quant_code += '# 跌破任何一条均线\n'
+            quant_code += '# Price drops below any MA\n'
             cond_str = ' | '.join([f'(df["close"] < df["ma{n}"])' for n in drop_below_ma])
             quant_code += f'sell_cond = {cond_str}\n'
         quant_code += 'df.loc[sell_cond, "sell_signal"] = 1\n\n'
 
-    quant_code += f"""# 仓位逻辑 + 止盈止损
-sl_rate = {sl_rate if sl_rate else None}  # 止损比例
-tp_rate = {tp_rate if tp_rate else None}  # 止盈比例
+    quant_code += f"""# Position logic + Stop loss / Take profit
+sl_rate = {sl_rate if sl_rate else None}  # Stop loss ratio
+tp_rate = {tp_rate if tp_rate else None}  # Take profit ratio
 
 for i in range(1, len(df)):
     pre_pos = df["position"].iloc[i-1]
@@ -364,32 +364,31 @@ for i in range(1, len(df)):
         else:
             df.loc[i, "position"] = 0
 
-# 计算收益
+# Calculate returns
 df["strategy_return"] = df["position"].shift(1) * df["return"]
 df["strategy_return"] = df["strategy_return"].fillna(0)
-df["标的收益(%)"] = (df["close"] / df["close"].iloc[0]) * 100
-df["策略收益(%)"] = (1 + df["strategy_return"]).cumprod() * 100
+df["Benchmark Return (%)"] = (df["close"] / df["close"].iloc[0]) * 100
+df["Strategy Return (%)"] = (1 + df["strategy_return"]).cumprod() * 100
 
-# 绘制收益曲线
-plt.rcParams['font.sans-serif'] = ['SimHei', 'WenQuanYi Zen Hei']
+# Plot returns
 plt.rcParams['axes.unicode_minus'] = False
 
 fig, ax = plt.subplots(figsize=(12, 5))
-ax.plot(df["date"], df["标的收益(%)"], label="标的价格（相对收益）", color="#2196F3", linewidth=2)
-ax.plot(df["date"], df["策略收益(%)"], label="策略净值（相对收益）", color="#F44336", linewidth=2)
+ax.plot(df["date"], df["Benchmark Return (%)"], label="Benchmark (Buy & Hold)", color="#2196F3", linewidth=2)
+ax.plot(df["date"], df["Strategy Return (%)"], label="Strategy Return", color="#F44336", linewidth=2)
 
-# 标记买卖点
+# Mark buy/sell points
 buy_points = df[df["buy_signal"] == 1]
 sell_points = df[df["sell_signal"] == 1]
-ax.scatter(buy_points["date"], buy_points["标的收益(%)"], color="green", marker="^", s=100, label="买入信号")
-ax.scatter(sell_points["date"], sell_points["标的收益(%)"], color="red", marker="v", s=100, label="卖出信号")
+ax.scatter(buy_points["date"], buy_points["Benchmark Return (%)"], color="green", marker="^", s=100, label="Buy Signal")
+ax.scatter(sell_points["date"], sell_points["Benchmark Return (%)"], color="red", marker="v", s=100, label="Sell Signal")
 
 ax.legend()
 ax.grid(True, alpha=0.3)
-ax.set_ylabel("相对收益（%，初始=100）")
-ax.set_xlabel("日期")
+ax.set_ylabel("Relative Return (%, Base=100)")
+ax.set_xlabel("Date")
 plt.xticks(rotation=45)
-plt.title(f"{symbol} 策略回测结果")
+plt.title(f"{symbol} Strategy Backtest Result")
 plt.show()
 """
 
