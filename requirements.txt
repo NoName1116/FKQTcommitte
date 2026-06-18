@@ -1,0 +1,33 @@
+python-dotenv
+akshare
+tushare
+langgraph
+langchain
+
+# Web框架
+streamlit>=1.36.0
+
+# 数据处理与计算
+pandas>=2.2.0
+numpy>=1.26.0
+
+# 数据可视化
+matplotlib>=3.8.0
+
+# 环境变量管理
+python-dotenv>=1.0.0
+
+# 大模型集成
+langchain-deepseek>=0.1.8
+
+# 实时搜索引擎
+tavily-python>=0.3.5
+
+# 金融行情数据
+tushare>=1.2.89
+
+# 定时任务
+APScheduler>=3.10.4
+
+# HTTP请求（企业微信推送）
+requests>=2.32.0
