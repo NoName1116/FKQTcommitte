@@ -1,15 +1,25 @@
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+import streamlit as st
 
-# 加载环境变量
+# 优先从Streamlit Secrets读取（云端），其次从.env读取（本地）
+def get_env(key: str):
+    # 先尝试Streamlit Secrets
+    try:
+        return st.secrets[key]
+    except (KeyError, AttributeError):
+        # 失败则从本地.env读取
+        return os.getenv(key)
+
+# 加载本地环境变量（仅本地运行时生效）
 load_dotenv()
 
-# API密钥
-DEEPSEEK_APIKEY = os.getenv("DEEPSEEK_API_KEY")
-TUSHARE_TOKEN = os.getenv("TUSHARE_TOKEN")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-WECOM_WEBHOOK = os.getenv("WECOM_WEBHOOK")
+# API密钥（同时兼容本地和云端）
+DEEPSEEK_APIKEY = get_env("DEEPSEEK_API_KEY")
+TUSHARE_TOKEN = get_env("TUSHARE_TOKEN")
+TAVILY_API_KEY = get_env("TAVILY_API_KEY")
+WECOM_WEBHOOK = get_env("WECOM_WEBHOOK")
 
 # 热门标的快速选择
 HOT_SYMBOLS = [
