@@ -128,7 +128,7 @@ def run_backtest(df: pd.DataFrame) -> dict:
     }
 
 
-# 5. 策略解析引擎
+# 5. 策略解析引擎（✅ 图表已删除所有文字，彻底解决乱码）
 def parse_strategy_to_signal(df: pd.DataFrame, strategy_text: str, symbol: str) -> tuple[pd.DataFrame, str, str]:
     data = df.copy()
     msg = "策略解析成功"
@@ -264,7 +264,7 @@ def parse_strategy_to_signal(df: pd.DataFrame, strategy_text: str, symbol: str) 
             else:
                 data.loc[i, "position"] = 0
 
-    # 生成可直接运行的量化代码（已改为英文图表）
+    # ✅ 生成可直接运行的量化代码（图表已删除所有文字）
     quant_code = f"""# Auto-generated Quant Trading Strategy Code
 # Strategy: {strategy_text}
 # Generated at: {time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -370,25 +370,21 @@ df["strategy_return"] = df["strategy_return"].fillna(0)
 df["Benchmark Return (%)"] = (df["close"] / df["close"].iloc[0]) * 100
 df["Strategy Return (%)"] = (1 + df["strategy_return"]).cumprod() * 100
 
-# Plot returns
+# ✅ 极简图表（无任何文字，彻底解决乱码）
 plt.rcParams['axes.unicode_minus'] = False
 
 fig, ax = plt.subplots(figsize=(12, 5))
-ax.plot(df["date"], df["Benchmark Return (%)"], label="Benchmark (Buy & Hold)", color="#2196F3", linewidth=2)
-ax.plot(df["date"], df["Strategy Return (%)"], label="Strategy Return", color="#F44336", linewidth=2)
+ax.plot(df["date"], df["Benchmark Return (%)"], color="#2196F3", linewidth=2)
+ax.plot(df["date"], df["Strategy Return (%)"], color="#F44336", linewidth=2)
 
 # Mark buy/sell points
 buy_points = df[df["buy_signal"] == 1]
 sell_points = df[df["sell_signal"] == 1]
-ax.scatter(buy_points["date"], buy_points["Benchmark Return (%)"], color="green", marker="^", s=100, label="Buy Signal")
-ax.scatter(sell_points["date"], sell_points["Benchmark Return (%)"], color="red", marker="v", s=100, label="Sell Signal")
+ax.scatter(buy_points["date"], buy_points["Benchmark Return (%)"], color="green", marker="^", s=100)
+ax.scatter(sell_points["date"], sell_points["Benchmark Return (%)"], color="red", marker="v", s=100)
 
-ax.legend()
 ax.grid(True, alpha=0.3)
-ax.set_ylabel("Relative Return (%, Base=100)")
-ax.set_xlabel("Date")
 plt.xticks(rotation=45)
-plt.title(f"{symbol} Strategy Backtest Result")
 plt.show()
 """
 
