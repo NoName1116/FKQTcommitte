@@ -22,6 +22,11 @@ def check_config() -> bool:
     return config_ok
 
 
+# ✅ 回调函数：修改session_state
+def select_symbol(symbol):
+    st.session_state.selected_symbol = symbol
+
+
 # 页面1：多Agent辩论投研系统
 def main_report():
     st.markdown("""
@@ -41,14 +46,14 @@ def main_report():
         st.info("ℹ️ Agent已自动获取最新市场信息进行分析")
         st.info("ℹ️ 策略回测请使用「自然语言策略解析器」")
 
-    # ✅ 初始化session_state管理symbol状态
+    # 初始化session_state
     if "selected_symbol" not in st.session_state:
         st.session_state.selected_symbol = "600519.SH"
 
-    # 输入区域 + 热门标的快速选择
+    # 输入区域 + 热门标的快速选择（✅ 终极修复：使用on_click回调函数）
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        # ✅ text_input绑定到session_state
+        # text_input绑定到session_state
         symbol = st.text_input(
             "标的代码（如 600519.SH）",
             value=st.session_state.selected_symbol,
@@ -60,14 +65,14 @@ def main_report():
         st.markdown("**热门标的快速选择**")
         hot_cols = st.columns(4)
         for i, hot_symbol in enumerate(HOT_SYMBOLS):
-            # ✅ 按钮点击时直接修改session_state，然后rerun
-            if hot_cols[i % 4].button(
-                    hot_symbol,
-                    use_container_width=True,
-                    key=f"hot_{hot_symbol}"
-            ):
-                st.session_state.selected_symbol = hot_symbol
-                st.rerun()
+            # ✅ 关键修复：使用on_click回调函数，这是Streamlit官方推荐的方式
+            hot_cols[i % 4].button(
+                hot_symbol,
+                use_container_width=True,
+                key=f"hot_{hot_symbol}",
+                on_click=select_symbol,
+                args=(hot_symbol,)
+            )
 
         run_btn = st.button(
             "🚀 开始多Agent辩论投研",
