@@ -41,20 +41,40 @@ def main_report():
         st.info("ℹ️ Agent已自动获取最新市场信息进行分析")
         st.info("ℹ️ 策略回测请使用「自然语言策略解析器」")
 
-    # 输入区域 + 热门标的快速选择（✅ 已修复按钮点击无反应问题）
+    # ✅ 初始化session_state管理symbol状态
+    if "selected_symbol" not in st.session_state:
+        st.session_state.selected_symbol = "600519.SH"
+
+    # 输入区域 + 热门标的快速选择
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        symbol = st.text_input("标的代码（如 600519.SH）", value="600519.SH")
+        # ✅ text_input绑定到session_state
+        symbol = st.text_input(
+            "标的代码（如 600519.SH）",
+            value=st.session_state.selected_symbol,
+            key="symbol_input"
+        )
+        # 同步输入框的值到session_state
+        st.session_state.selected_symbol = symbol
 
         st.markdown("**热门标的快速选择**")
         hot_cols = st.columns(4)
         for i, hot_symbol in enumerate(HOT_SYMBOLS):
-            # ✅ 关键修复：给每个按钮添加唯一的key参数
-            if hot_cols[i % 4].button(hot_symbol, use_container_width=True, key=f"hot_{hot_symbol}"):
-                symbol = hot_symbol
+            # ✅ 按钮点击时直接修改session_state，然后rerun
+            if hot_cols[i % 4].button(
+                    hot_symbol,
+                    use_container_width=True,
+                    key=f"hot_{hot_symbol}"
+            ):
+                st.session_state.selected_symbol = hot_symbol
                 st.rerun()
 
-        run_btn = st.button("🚀 开始多Agent辩论投研", type="primary", use_container_width=True, disabled=not config_ok)
+        run_btn = st.button(
+            "🚀 开始多Agent辩论投研",
+            type="primary",
+            use_container_width=True,
+            disabled=not config_ok
+        )
 
     # 会话状态
     if "report_result" not in st.session_state:
@@ -185,7 +205,12 @@ def main_nl_strategy():
         )
     with col2:
         nl_symbol = st.text_input("标的代码", value="600519.SH")
-        run_nl_btn = st.button("🚀 解析并回测", type="primary", use_container_width=True, disabled=not config_ok)
+        run_nl_btn = st.button(
+            "🚀 解析并回测",
+            type="primary",
+            use_container_width=True,
+            disabled=not config_ok
+        )
 
     if run_nl_btn and nl_strategy.strip() and nl_symbol.strip():
         with st.spinner("🚀 正在解析自然语言策略并回测..."):
@@ -283,7 +308,12 @@ def main_stock_comment():
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         symbol = st.text_input("输入股票代码（如 600519.SH）", value="600519.SH")
-        generate_btn = st.button("🚀 生成专业股评", type="primary", use_container_width=True, disabled=not config_ok)
+        generate_btn = st.button(
+            "🚀 生成专业股评",
+            type="primary",
+            use_container_width=True,
+            disabled=not config_ok
+        )
 
     if generate_btn and symbol.strip():
         with st.spinner("📊 正在获取数据并生成股评..."):
